@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/andrewchambers/terraform-provider-nix/nix"
+	"github.com/circuithub/terraform-provider-nix/nix"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 

@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/andrewchambers/terraform-provider-nix/nix"
+	"github.com/circuithub/terraform-provider-nix/nix"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
