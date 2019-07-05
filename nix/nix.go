@@ -2,6 +2,7 @@ package nix
 
 import (
 	"bytes"
+    "encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -153,6 +154,31 @@ func BuildSystem(cfg *NixosRebuildConfig) (string, error) {
 	}
 
 	return os.Readlink(outLink)
+}
+
+func EvaluateSystem(cfg *NixosRebuildConfig) (string, error) {
+	tmp, err := ioutil.TempDir("", "")
+	if err != nil {
+		return "", err
+	}
+	defer os.RemoveAll(tmp)
+
+	cmd := exec.Command("nix-instantiate", "--eval", "--read-write-mode", "-E", "import <nixpkgs/nixos>", "-A", "system.outPath", "--show-trace")
+	cmd.Dir = tmp
+	cmd.Env = cfg.GetEnv()
+	output := bytes.NewBuffer(nil)
+	err = runCommandWithLogging(cmd, output)
+	if err != nil {
+		return "", formatChildErr(err)
+	}
+
+    var out string;
+    err = json.Unmarshal(output.Bytes(), &out)
+    if err != nil {
+        return "", err
+    }
+
+    return out, nil
 }
 
 // CurrentSystem returns the store path of the system on the TargetHost.

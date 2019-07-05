@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"os"
 	"path/filepath"
 	"time"
@@ -126,13 +125,13 @@ func (cfg *nixosResourceConfig) writeConfig() error {
 	return nil
 }
 
-func (cfg *nixosResourceConfig) DoBuild() (string, error) {
+func (cfg *nixosResourceConfig) DoEvaluate() (string, error) {
 	err := cfg.writeConfig()
 	if err != nil {
 		return "", err
 	}
 
-	return nix.BuildSystem(cfg.GetRebuildConfig())
+	return nix.EvaluateSystem(cfg.GetRebuildConfig())
 }
 
 func (cfg *nixosResourceConfig) DoSwitch() error {
@@ -273,28 +272,18 @@ func resourceNixOSDelete(d *schema.ResourceData, m interface{}) error {
 }
 
 func resourceNixOSCustomizeDiff(d *schema.ResourceDiff, m interface{}) error {
-	// A trick to prevent prematurely writing nix expressions to disks path
-	// when this is the first diff.
-	if d.HasChange("nixos_config") {
-		d.SetNewComputed("nixos_system")
-		return nil
-	}
-
 	cfg, err := getNixosConfig(d)
 	if err != nil {
 		return err
 	}
 
-	desiredSystem, err := cfg.DoBuild()
+	desiredSystem, err := cfg.DoEvaluate()
 	if err != nil {
-		log.Printf("build failed, assuming this is because of generated configs. err=%s", err.Error())
-		// If this really is an error, it will be picked up by the switch command.
-		d.SetNewComputed("nixos_system")
-		return nil
+		return err
 	}
 
 	if d.Get("nixos_system").(string) != desiredSystem {
-		d.SetNewComputed("nixos_system")
+		d.SetNew("nixos_system", desiredSystem)
 	}
 
 	return nil
