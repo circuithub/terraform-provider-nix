@@ -1,4 +1,4 @@
-module github.com/andrewchambers/terraform-provider-nix
+module github.com/circuithub/terraform-provider-nix
 
 require (
 	github.com/beevik/etree v0.0.0-20171015221209-af219c0c7ea1 // indirect
